@@ -1,7 +1,7 @@
 # bot.py
 
 import pandas as pd
-from data import category_links, TOKEN 
+from data import category_links, TOKEN , ADMIN_IDS
 
 from telegram import (
     Update, ReplyKeyboardMarkup, ReplyKeyboardRemove, KeyboardButton,
