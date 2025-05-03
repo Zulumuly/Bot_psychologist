@@ -1,25 +1,20 @@
+# bot.py
+
 import pandas as pd
+from data import category_links, TOKEN 
+
 from telegram import (
-    Update, ReplyKeyboardMarkup, ReplyKeyboardRemove, KeyboardButton
+    Update, ReplyKeyboardMarkup, ReplyKeyboardRemove, KeyboardButton,
+    InlineKeyboardButton, InlineKeyboardMarkup
 )
 from telegram.ext import (
     ApplicationBuilder, CommandHandler, MessageHandler,
-    ContextTypes, ConversationHandler, filters
+    ContextTypes, ConversationHandler, filters, CallbackQueryHandler
 )
 from datetime import datetime
 
 # Состояния
 CONFIRM, QUESTION1, QUESTION2, QUESTION3 = range(4)
-
-# Права на экспорт
-ADMIN_IDS = [1040503223]  # user id можно посмотреть в боте userinfobot
-
-# Ответы и ссылки
-category_links = {
-    "Татьяна Костина": "https://example.com/a",
-    "Андрей Давыдов": "https://example.com/b",
-    "Анна Кречетова": "https://example.com/c"
-}
 
 responses = []
 
@@ -27,8 +22,8 @@ responses = []
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "Привет 👋\n\n"
-        "🟢 /link – Получить ссылку\n"
-        "🔵 /info – Посмотреть информацию"
+        "🟢 /link – Получить ссылку на онлайн консультацию\n"
+        "🔵 /info – Посмотреть информацию о психологах в Московском банке"
     )
 
 # /link
@@ -37,9 +32,9 @@ async def link(update: Update, context: ContextTypes.DEFAULT_TYPE):
     markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
     await update.message.reply_text(
         "ℹ️ Перед началом опроса:\n\n"
-        "Убедитесь, что вы записались на консультацию через ПУЛЬС.\n"
-        "По результату вы получите ссылку.\n\n"
-        "Если всё понятно, нажмите 'Продолжить'.",
+        "Убедитесь, что вы записались на консультацию через *ПУЛЬС*.\n"
+        "Если не записаться через Пульс, ссылка будет неактивной."
+        "По результату вы получите ссылку.\n\n",
         reply_markup=markup
     )
     return CONFIRM
@@ -60,7 +55,7 @@ async def question1(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if choice == "Моего варианта нет":
         await update.message.reply_text(
             "❌ Вы записались к психологу, который не проводит онлайн консультации.\n\n"
-            "Если хотите начать сначала – используйте /link",
+            "Если хотите пройти опрос сначала – используйте /link",
             reply_markup=ReplyKeyboardRemove()
         )
         return ConversationHandler.END
@@ -80,12 +75,12 @@ async def question2(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # Вопрос 3 и завершение
 async def question3(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    context.user_data["city"] = update.message.text
+    context.user_data["time"] = update.message.text
     username = update.effective_user.username or "Без ника"
     user_id = update.effective_user.id
     category = context.user_data["category"]
     age = context.user_data["age"]
-    city = context.user_data["city"]
+    time = context.user_data["time"]
     date = datetime.now().strftime("%Y-%m-%d %H:%M")
 
     # Удалить старую запись
@@ -96,7 +91,7 @@ async def question3(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "username": username,
         "category": category,
         "age": age,
-        "city": city,
+        "time": time,
         "date": date
     })
 
@@ -106,19 +101,69 @@ async def question3(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # /info
 async def info(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.effective_user.id
-    entry = next((r for r in responses if r["user_id"] == user_id), None)
-    if entry:
-        await update.message.reply_text(
-            f"🧾 Информация:\n"
-            f"Ник: @{entry['username']}\n"
-            f"Категория: {entry['category']}\n"
-            f"Возраст: {entry['age']}\n"
-            f"Город: {entry['city']}\n"
-            f"Дата: {entry['date']}"
-        )
-    else:
-        await update.message.reply_text("ℹ️ Вы ещё не проходили опрос. Используйте /link")
+    keyboard = [
+        [InlineKeyboardButton("ℹ️ Психологи Московского банка", callback_data="info_about")],
+        [InlineKeyboardButton("📝 Как записаться на консультацию", callback_data="info_how")],
+        [InlineKeyboardButton("📍 Адреса кабинетов", callback_data="info_terms")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await update.message.reply_text("📘 Выберите интересующий раздел:", reply_markup=reply_markup)
+
+# Обработчик кнопок в меню информации
+async def info_buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+
+
+    # Задаём дефолтное сообщение для обработки несуществующих значений
+    text = "ℹ️ Ошибка. Неизвестный запрос."
+
+    # В зависимости от нажатой кнопки показываем нужную информацию
+    if query.data == "info_about":
+        text = "ℹ️ *Психологи*\n\nЗдесь ты можешь узнать всё о ..."
+    elif query.data == "info_how":
+        text = """📝 *Как записаться на консультацию:*
+        1. В *Пульсе* зайдите раздел *Мое здоровье*
+        2. Выберите психологическая поддержка - *записаться очно*
+        3. Далее измените адрес 
+        4. Запишитесь на понравившеюся дату и время
+        """
+    elif query.data == "info_terms":
+        text = """📍 *Адреса кабинетов*
+        - Старокачаловская д.10, м. Бульвар Д. Донского
+        - Андроньевская д.6, м. Таганская
+        - Расплетина д.1, м.
+        """
+
+    # Кнопка "Назад", чтобы вернуться в главное меню
+    elif query.data == "info_back":
+        text = "📘 Выберите интересующий раздел:"
+        # Мы возвращаемся в главное меню с двумя основными кнопками
+        keyboard = [
+            [InlineKeyboardButton("Психологи", callback_data="info_about")],
+            [InlineKeyboardButton("Как записаться на консультацию", callback_data="info_how")],
+            [InlineKeyboardButton("Адреса кабинетов", callback_data="info_terms")]
+        ]
+        await query.edit_message_text(text=text, parse_mode="Markdown", reply_markup=InlineKeyboardMarkup(keyboard))
+        return
+
+    # Кнопка назад для возвращения в меню информации
+    keyboard = [
+        [InlineKeyboardButton("⬅️ Назад", callback_data="info_back")]
+    ]
+    await query.edit_message_text(text=text, parse_mode="Markdown", reply_markup=InlineKeyboardMarkup(keyboard))
+# Обработчик для кнопки "Назад"
+async def info_back(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    
+    # Главное меню информации
+    keyboard = [
+        [InlineKeyboardButton("ℹ️ Психологи Московского банка", callback_data="info_about")],
+        [InlineKeyboardButton("📝 Как записаться на консультацию", callback_data="info_how")],
+        [InlineKeyboardButton("📍 Адреса кабинетов", callback_data="info_terms")]
+    ]
+    await query.edit_message_text("📘 Выберите интересующий раздел:", reply_markup=InlineKeyboardMarkup(keyboard))
 
 # /export (только для ADMIN_IDS)
 async def export(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -143,7 +188,7 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # Запуск
 if __name__ == "__main__":
-    app = ApplicationBuilder().token("8141969487:AAHbQVPhetHuw_o3aSSvkfO8jwu6gbfgI8Q").build()
+    app = ApplicationBuilder().token(TOKEN).build()
 
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler("link", link)],
@@ -158,6 +203,8 @@ if __name__ == "__main__":
 
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("info", info))
+    app.add_handler(CallbackQueryHandler(info_buttons))
+    app.add_handler(CallbackQueryHandler(info_back, pattern="info_back"))
     app.add_handler(CommandHandler("export", export))
     app.add_handler(conv_handler)
 
