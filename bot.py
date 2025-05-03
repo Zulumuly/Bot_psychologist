@@ -1,74 +1,75 @@
 import pandas as pd
 from telegram import (
-    Update, ReplyKeyboardMarkup, KeyboardButton
+    Update, ReplyKeyboardMarkup, ReplyKeyboardRemove, KeyboardButton
 )
 from telegram.ext import (
     ApplicationBuilder, CommandHandler, MessageHandler,
-    ConversationHandler, ContextTypes, filters
+    ContextTypes, ConversationHandler, filters
 )
+from datetime import datetime
 
 # Состояния
-QUESTION1, QUESTION2, QUESTION3 = range(3)
+CONFIRM, QUESTION1, QUESTION2, QUESTION3 = range(4)
 
-# Хранилище
+# Права на экспорт
+ADMIN_IDS = [1040503223]  # user id можно посмотреть в боте userinfobot
+
+# Ответы и ссылки
+category_links = {
+    "Татьяна Костина": "https://example.com/a",
+    "Андрей Давыдов": "https://example.com/b",
+    "Анна Кречетова": "https://example.com/c"
+}
+
 responses = []
-
-# Главное меню
-def main_menu():
-    keyboard = [
-        [KeyboardButton("📝 Ответить на вопросы")],
-        [KeyboardButton("📄 Посмотреть информацию")],
-        [KeyboardButton("📤 Экспорт Excel")],
-        [KeyboardButton("❌ Отмена")]
-    ]
-    return ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
 
 # /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
-        "Привет! Я бот для сбора информации.\nВыбери действие из меню:",
-        reply_markup=main_menu()
+        "Привет 👋\n\n"
+        "🟢 /link – Получить ссылку\n"
+        "🔵 /info – Посмотреть информацию"
     )
-    return ConversationHandler.END
 
-# Обработка меню
-async def handle_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    text = update.message.text
+# /link
+async def link(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    keyboard = [["✅ Продолжить", "❌ Отмена"]]
+    markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+    await update.message.reply_text(
+        "ℹ️ Перед началом опроса:\n\n"
+        "Убедитесь, что вы записались на консультацию через ПУЛЬС.\n"
+        "По результату вы получите ссылку.\n\n"
+        "Если всё понятно, нажмите 'Продолжить'.",
+        reply_markup=markup
+    )
+    return CONFIRM
 
-    if text == "📝 Ответить на вопросы":
-        keyboard = [["Татьяна Костина"], ["Анна Кречетова"], ["Андрей Давыдов"]]
-        reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True, one_time_keyboard=True)
-        await update.message.reply_text("Вопрос 1: Выбери психолога:", reply_markup=reply_markup)
+# Подтверждение
+async def confirm(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.message.text == "✅ Продолжить":
+        keyboard = [["Татьяна Костина"], ["Андрей Давыдов"], ["Анна Кречетова"], ["Моего варианта нет"]]
+        await update.message.reply_text("Вопрос 1: Выберите к какому психологу вы записались?:", reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True))
+        return QUESTION1
+    else:
+        await update.message.reply_text("Опрос отменён.", reply_markup=ReplyKeyboardRemove())
+        return ConversationHandler.END
+
+# Вопрос 1
+async def question1(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    choice = update.message.text
+    if choice == "Моего варианта нет":
+        await update.message.reply_text(
+            "❌ Вы записались к психологу, который не проводит онлайн консультации.\n\n"
+            "Если хотите начать сначала – используйте /link",
+            reply_markup=ReplyKeyboardRemove()
+        )
+        return ConversationHandler.END
+    elif choice not in category_links:
+        await update.message.reply_text("❗ Пожалуйста, выберите вариант из списка.")
         return QUESTION1
 
-    elif text == "📄 Посмотреть информацию":
-        username = update.effective_user.username
-        entry = next((r for r in responses if r["Username"] == username), None)
-        if entry:
-            await update.message.reply_text(
-                f"👤 Категория: {entry['Category']}\n🎂 Возраст: {entry['Age']}\n🏙️ Город: {entry['City']}",
-                reply_markup=main_menu()
-            )
-        else:
-            await update.message.reply_text("❗ Вы ещё не заполняли анкету.", reply_markup=main_menu())
-        return ConversationHandler.END
-
-    elif text == "📤 Экспорт Excel":
-        return await export(update, context)
-
-    elif text == "❌ Отмена":
-        await update.message.reply_text("Операция отменена.", reply_markup=main_menu())
-        return ConversationHandler.END
-
-    else:
-        await update.message.reply_text("Пожалуйста, выбери действие из меню.")
-        return ConversationHandler.END
-
-# Обработка 1-го вопроса (выбор категории)
-async def question1_choice(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    selected = update.message.text
-    context.user_data["category"] = selected
-    await update.message.reply_text("Вопрос 2: На какую дату ты записался")
+    context.user_data["category"] = choice
+    await update.message.reply_text("Вопрос 2: На какую дату вы записались?", reply_markup=ReplyKeyboardRemove())
     return QUESTION2
 
 # Вопрос 2
@@ -77,60 +78,78 @@ async def question2(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Вопрос 3: На какое время?")
     return QUESTION3
 
-# Вопрос 3 + вывод ссылки
+# Вопрос 3 и завершение
 async def question3(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data["city"] = update.message.text
-    username = update.effective_user.username
+    username = update.effective_user.username or "Без ника"
+    user_id = update.effective_user.id
+    category = context.user_data["category"]
+    age = context.user_data["age"]
+    city = context.user_data["city"]
+    date = datetime.now().strftime("%Y-%m-%d %H:%M")
 
-    # Сохраняем
-    responses[:] = [r for r in responses if r["Username"] != username]
+    # Удалить старую запись
+    responses[:] = [r for r in responses if r["user_id"] != user_id]
+
     responses.append({
-        "Username": username,
-        "Category": context.user_data["category"],
-        "Age": context.user_data["age"],
-        "City": context.user_data["city"]
+        "user_id": user_id,
+        "username": username,
+        "category": category,
+        "age": age,
+        "city": city,
+        "date": date
     })
 
-    # Ссылка по категории
-    links = {
-        "🔵 Вариант A": "https://example.com/a",
-        "🟢 Вариант B": "https://example.com/b",
-        "🔴 Вариант C": "https://example.com/c"
-    }
-    link = links.get(context.user_data["category"], "https://example.com/default")
-
-    await update.message.reply_text(
-        f"✅ Спасибо за ответы!\n🔗 Вот твоя ссылка: {link}",
-        reply_markup=main_menu()
-    )
+    link = category_links.get(category)
+    await update.message.reply_text(f"✅ Спасибо! Ваша ссылка: {link}")
     return ConversationHandler.END
 
-# Экспорт в Excel
+# /info
+async def info(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    entry = next((r for r in responses if r["user_id"] == user_id), None)
+    if entry:
+        await update.message.reply_text(
+            f"🧾 Информация:\n"
+            f"Ник: @{entry['username']}\n"
+            f"Категория: {entry['category']}\n"
+            f"Возраст: {entry['age']}\n"
+            f"Город: {entry['city']}\n"
+            f"Дата: {entry['date']}"
+        )
+    else:
+        await update.message.reply_text("ℹ️ Вы ещё не проходили опрос. Используйте /link")
+
+# /export (только для ADMIN_IDS)
 async def export(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    if user_id not in ADMIN_IDS:
+        await update.message.reply_text("⛔ У вас нет доступа к экспорту.")
+        return
+
     if not responses:
-        await update.message.reply_text("Нет данных для экспорта.", reply_markup=main_menu())
-        return ConversationHandler.END
+        await update.message.reply_text("📭 Пока нет данных для экспорта.")
+        return
 
     df = pd.DataFrame(responses)
-    path = "responses.xlsx"
-    df.to_excel(path, index=False)
+    df.to_excel("export.xlsx", index=False)
 
-    await update.message.reply_document(document=open(path, "rb"), caption="📥 Данные в Excel.", reply_markup=main_menu())
-    return ConversationHandler.END
+    await update.message.reply_document(document=open("export.xlsx", "rb"), filename="results.xlsx")
 
-# Отмена
+# /cancel
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Операция отменена.", reply_markup=main_menu())
+    await update.message.reply_text("Опрос отменён.", reply_markup=ReplyKeyboardRemove())
     return ConversationHandler.END
 
 # Запуск
-if __name__ == '__main__':
+if __name__ == "__main__":
     app = ApplicationBuilder().token("8141969487:AAHbQVPhetHuw_o3aSSvkfO8jwu6gbfgI8Q").build()
 
     conv_handler = ConversationHandler(
-        entry_points=[MessageHandler(filters.TEXT & ~filters.COMMAND, handle_menu)],
+        entry_points=[CommandHandler("link", link)],
         states={
-            QUESTION1: [MessageHandler(filters.TEXT & ~filters.COMMAND, question1_choice)],
+            CONFIRM: [MessageHandler(filters.TEXT & ~filters.COMMAND, confirm)],
+            QUESTION1: [MessageHandler(filters.TEXT & ~filters.COMMAND, question1)],
             QUESTION2: [MessageHandler(filters.TEXT & ~filters.COMMAND, question2)],
             QUESTION3: [MessageHandler(filters.TEXT & ~filters.COMMAND, question3)],
         },
@@ -138,7 +157,9 @@ if __name__ == '__main__':
     )
 
     app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("info", info))
+    app.add_handler(CommandHandler("export", export))
     app.add_handler(conv_handler)
 
-    print("✅ Бот запущен.")
+    print("🤖 Бот запущен...")
     app.run_polling()
