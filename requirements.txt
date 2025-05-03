@@ -3,3 +3,4 @@ pandas
 openpyxl
 flask
 Flask==2.2.2
+werkzeug==2.3.0
