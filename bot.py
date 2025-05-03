@@ -13,6 +13,10 @@ from telegram.ext import (
 )
 from datetime import datetime
 
+from keep_alive import keep_alive
+
+keep_alive()
+
 # Состояния
 CONFIRM, QUESTION1, QUESTION2, QUESTION3 = range(4)
 
