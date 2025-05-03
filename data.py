@@ -10,5 +10,5 @@ category_links = {
     "Анна Кречетова": "https://jazz.sberbank.ru/sber-miu1el?psw=OERaVhwRHBJYVF1AQwULAVdeQA"
 }
 
-# Токен бота
+# Токен бота 
 TOKEN = "8141969487:AAHbQVPhetHuw_o3aSSvkfO8jwu6gbfgI8Q"
