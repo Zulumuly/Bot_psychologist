@@ -54,8 +54,8 @@ async def question1(update: Update, context: ContextTypes.DEFAULT_TYPE):
     choice = update.message.text
     if choice == "Моего варианта нет":
         await update.message.reply_text(
-            "❌ Вы записались к психологу, который не проводит онлайн консультации.\n\n"
-            "Если хотите пройти опрос сначала – используйте /link",
+            "❌ Вы записались к психологу, который не проводит онлайн консультации.\n\n" \
+            "Или не записались через Пульс",
             reply_markup=ReplyKeyboardRemove()
         )
         return ConversationHandler.END
