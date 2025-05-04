@@ -85,14 +85,6 @@ async def question3(update: Update, context: ContextTypes.DEFAULT_TYPE):
     time = context.user_data["time"]
     date = datetime.now().strftime("%Y-%m-%d %H:%M")
 
-    responses.append({
-        "username": username,
-        "category": category,
-        "age": age,
-        "time": time,
-        "date": date
-    })
-
     link = category_links.get(category)
     await update.message.reply_text(f"✅ Спасибо! Ваша ссылка: {link}")
     return ConversationHandler.END
