@@ -87,11 +87,11 @@ async def question3(update: Update, context: ContextTypes.DEFAULT_TYPE):
     date = datetime.now().strftime("%Y-%m-%d %H:%M")
 
     responses.append({
-        "username": username,
-        "category": category,
-        "age": age,
-        "time": time,
-        "date": date
+        "Ник": username,
+        "Психолог": category,
+        "Дата": age,
+        "Время": time,
+        "Время заполнения": date
     })
 
     link = category_links.get(category)
