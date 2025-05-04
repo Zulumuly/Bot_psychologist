@@ -26,23 +26,13 @@ async def export(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     file_path = "export.xlsx"
 
-    # Проверка: если файл уже существует, загружаем существующий и комбинируем
+    # Проверка: если файл уже существует – загружаем, иначе создаем
     if os.path.exists(file_path):
         existing_df = pd.read_excel(file_path)
         new_df = pd.DataFrame(responses)
         combined_df = pd.concat([existing_df, new_df], ignore_index=True)
     else:
-        # Если файл не существует, просто создаем новый DataFrame
         combined_df = pd.DataFrame(responses)
-
-    # Переименование столбцов на русский
-    combined_df = combined_df.rename(columns={
-        "username": "Никнейм",
-        "category": "Психолог",
-        "age": "Дата консультации",
-        "time": "Время консультации",
-        "date": "Дата заполнения"
-    })
 
     # Сохраняем в файл
     combined_df.to_excel(file_path, index=False)
