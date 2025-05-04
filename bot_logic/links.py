@@ -60,13 +60,31 @@ async def question1(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("❗ Пожалуйста, выберите вариант из списка.")
         return QUESTION1
 
+
     context.user_data["category"] = choice
-    await update.message.reply_text("Вопрос 2: На какую дату вы записались?", reply_markup=ReplyKeyboardRemove())
+    await update.message.reply_text(
+        "Вопрос 2: На какую дату вы записались?\n\n"
+        "_Введите дату в формате ДД.ММ.ГГГГ (например, 12.05.2025)_",
+        parse_mode="Markdown",
+        reply_markup=ReplyKeyboardRemove()
+    )
     return QUESTION2
 
 # Вопрос 2
 async def question2(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    context.user_data["age"] = update.message.text
+    text = update.message.text.strip()
+
+    # Проверка формата даты
+    try:
+        parsed_date = datetime.strptime(text, "%d.%m.%Y")
+        context.user_data["age"] = parsed_date.strftime("%d.%m.%Y")
+    except ValueError:
+        await update.message.reply_text(
+            "❗ Неверный формат даты. Введите дату в формате *ДД.ММ.ГГГГ* (например, 12.05.2025).",
+            parse_mode="Markdown"
+        )
+        return QUESTION2
+    
     # Кнопки с вариантами времени
     keyboard = [
         ["11:00", "12:00", "13:00", "14:00"],
