@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 
-from Bot_psychologist.bot_logic.data import ADMIN_IDS
+from bot_logic.data import ADMIN_IDS
 
 from telegram import (
     Update, ReplyKeyboardRemove
@@ -11,7 +11,7 @@ from telegram.ext import (
     ContextTypes, ConversationHandler
 )
 
-responses = [] 
+from .links import responses
 
 # /export (только для ADMIN_IDS)
 async def export(update: Update, context: ContextTypes.DEFAULT_TYPE):

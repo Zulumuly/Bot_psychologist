@@ -1,8 +1,8 @@
-from .bot_logic.export import (
+from bot_logic.export import (
     export, cancel
 )
 
-from .bot_logic.info import (
+from bot_logic.info import (
     info, info_buttons, info_back
 )
 
@@ -11,12 +11,12 @@ from telegram.ext import (
     CallbackQueryHandler
 )
 
-from .bot_logic.links import (
+from bot_logic.links import (
     start, link, confirm, question1, question2, question3,
     CONFIRM, QUESTION1, QUESTION2, QUESTION3
 )
 
-from .bot_logic.data import TOKEN
+from bot_logic.data import TOKEN
 
 from keep_alive import keep_alive
 
