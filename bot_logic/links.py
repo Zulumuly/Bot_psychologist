@@ -67,7 +67,14 @@ async def question1(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # Вопрос 2
 async def question2(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data["age"] = update.message.text
-    await update.message.reply_text("Вопрос 3: На какое время?")
+    # Кнопки с вариантами времени
+    keyboard = [
+        ["11:00", "12:00", "13:00", "14:00"],
+        ["16:00", "17:00", "18:00", "19:00"]
+    ]
+    markup = ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True)
+
+    await update.message.reply_text("Вопрос 3: На какое время?", reply_markup=markup)
     return QUESTION3
 
 # Вопрос 3 и завершение
