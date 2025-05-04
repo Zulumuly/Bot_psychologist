@@ -34,6 +34,16 @@ async def export(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         combined_df = pd.DataFrame(responses)
 
+        # Переименование столбцов
+    combined_df = combined_df.rename(columns={
+        "username": "Никнейм",
+        "category": "Психолог",
+        "age": "Дата консультации",
+        "time": "Время консультации",
+        "date": "Дата заполнения"
+    })
+
+
     # Сохраняем в файл
     combined_df.to_excel(file_path, index=False)
 

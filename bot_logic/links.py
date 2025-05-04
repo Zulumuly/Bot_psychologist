@@ -67,7 +67,6 @@ async def question1(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # Вопрос 2
 async def question2(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data["age"] = update.message.text
-    # Кнопки с вариантами времени
     keyboard = [
         ["11:00", "12:00", "13:00", "14:00"],
         ["16:00", "17:00", "18:00", "19:00"]

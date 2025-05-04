@@ -17,7 +17,6 @@ from bot_logic.links import (
 )
 
 from bot_logic.data import TOKEN
-
 from keep_alive import keep_alive
 
 keep_alive()
