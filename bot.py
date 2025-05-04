@@ -3,6 +3,9 @@
 import pandas as pd
 from data import category_links, TOKEN , ADMIN_IDS
 
+import os
+import openpyxl
+
 from telegram import (
     Update, ReplyKeyboardMarkup, ReplyKeyboardRemove, KeyboardButton,
     InlineKeyboardButton, InlineKeyboardMarkup
@@ -86,9 +89,6 @@ async def question3(update: Update, context: ContextTypes.DEFAULT_TYPE):
     age = context.user_data["age"]
     time = context.user_data["time"]
     date = datetime.now().strftime("%Y-%m-%d %H:%M")
-
-    # Удалить старую запись
-    responses[:] = [r for r in responses if r["user_id"] != user_id]
 
     responses.append({
         "user_id": user_id,
@@ -180,10 +180,20 @@ async def export(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("📭 Пока нет данных для экспорта.")
         return
 
-    df = pd.DataFrame(responses)
-    df.to_excel("export.xlsx", index=False)
+    file_path = "export.xlsx"
 
-    await update.message.reply_document(document=open("export.xlsx", "rb"), filename="results.xlsx")
+    # Проверка: если файл уже существует – загружаем, иначе создаем
+    if os.path.exists(file_path):
+        existing_df = pd.read_excel(file_path)
+        new_df = pd.DataFrame(responses)
+        combined_df = pd.concat([existing_df, new_df], ignore_index=True)
+    else:
+        combined_df = pd.DataFrame(responses)
+
+    # Сохраняем в файл
+    combined_df.to_excel(file_path, index=False)
+
+    await update.message.reply_document(document=open(file_path, "rb"), filename="results.xlsx")
 
 # /cancel
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
