@@ -19,15 +19,15 @@ responses = []
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "Привет 👋\n\n"
-        "🟢 /link – Получить ссылку на онлайн консультацию\n"
-        "🔵 /info – Посмотреть информацию о психологах в Московском банке"
+        "📝 /link – Получить ссылку на онлайн консультацию\n"
+        "ℹ️ /info – Посмотреть информацию о психологах в Московском банке"
     )
 
 # /link
 async def link(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [["✅ Продолжить", "❌ Отмена"]]
     markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
-    await update.message.reply_text(TEXT_FOR_FIRST_Q)
+    await update.message.reply_text(TEXT_FOR_FIRST_Q, parse_mode="Markdown")
     return CONFIRM
 
 # Подтверждение
