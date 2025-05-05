@@ -27,14 +27,14 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def link(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [["✅ Продолжить", "❌ Отмена"]]
     markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
-    await update.message.reply_text(TEXT_FOR_FIRST_Q, parse_mode="Markdown")
+    await update.message.reply_text(TEXT_FOR_FIRST_Q, parse_mode="Markdown", reply_markup=markup)
     return CONFIRM
 
 # Подтверждение
 async def confirm(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.message.text == "✅ Продолжить":
         keyboard = [["Татьяна Костина"], ["Андрей Давыдов"], ["Анна Кречетова"], ["Моего варианта нет"]]
-        await update.message.reply_text(TEXT_FOR_FIRST_Q, reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True))
+        await update.message.reply_text("Вопрос 1: Выберите, к какому психологу вы записались:", reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True))
         return QUESTION1
     else:
         await update.message.reply_text("Опрос отменён.", reply_markup=ReplyKeyboardRemove())
