@@ -8,6 +8,7 @@ from telegram import (
 
 from .data import category_links
 from datetime import datetime
+from .text import TEXT_FOR_FIRST_Q
 
 # Состояния
 CONFIRM, QUESTION1, QUESTION2, QUESTION3 = range(4)
@@ -26,18 +27,14 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def link(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [["✅ Продолжить", "❌ Отмена"]]
     markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
-    await update.message.reply_text(
-        "ℹ️ Важно!\n\n"
-        "Для участия в опросе запишитесь на консультацию через «ПУЛЬС», только тогда ссылка будет активной.\n",
-        reply_markup=markup
-    )
+    await update.message.reply_text(TEXT_FOR_FIRST_Q)
     return CONFIRM
 
 # Подтверждение
 async def confirm(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.message.text == "✅ Продолжить":
         keyboard = [["Татьяна Костина"], ["Андрей Давыдов"], ["Анна Кречетова"], ["Моего варианта нет"]]
-        await update.message.reply_text("Вопрос 1: Выберите к какому психологу вы записались?:", reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True))
+        await update.message.reply_text(TEXT_FOR_FIRST_Q, reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True))
         return QUESTION1
     else:
         await update.message.reply_text("Опрос отменён.", reply_markup=ReplyKeyboardRemove())
