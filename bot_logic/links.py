@@ -7,7 +7,6 @@ from telegram import (
 )
 
 from .data import category_links
-
 from datetime import datetime
 
 # Состояния
@@ -28,10 +27,8 @@ async def link(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [["✅ Продолжить", "❌ Отмена"]]
     markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
     await update.message.reply_text(
-        "ℹ️ Перед началом опроса:\n\n"
-        "Убедитесь, что вы записались на консультацию через *ПУЛЬС*.\n"
-        "Если не записаться через Пульс, ссылка будет неактивной."
-        "По результату вы получите ссылку.\n\n",
+        "ℹ️ Важно!\n\n"
+        "Для участия в опросе запишитесь на консультацию через «ПУЛЬС», только тогда ссылка будет активной.\n",
         reply_markup=markup
     )
     return CONFIRM
@@ -51,8 +48,7 @@ async def question1(update: Update, context: ContextTypes.DEFAULT_TYPE):
     choice = update.message.text
     if choice == "Моего варианта нет":
         await update.message.reply_text(
-            "❌ Вы записались к психологу, который не проводит онлайн консультации.\n\n" \
-            "Или не записались через Пульс",
+            "❌ Вы записались к психологу, который не проводит онлайн консультации.\n\n",
             reply_markup=ReplyKeyboardRemove()
         )
         return ConversationHandler.END
@@ -113,5 +109,5 @@ async def question3(update: Update, context: ContextTypes.DEFAULT_TYPE):
     })
 
     link = category_links.get(category)
-    await update.message.reply_text(f"✅ Спасибо! Ваша ссылка: {link}")
+    await update.message.reply_text(f"✅ Спасибо! Ваша ссылка на онлайн консультацию: {link}")
     return ConversationHandler.END

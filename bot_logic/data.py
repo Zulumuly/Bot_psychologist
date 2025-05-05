@@ -1,7 +1,7 @@
 # data.py
 
 # Права на экспорт
-ADMIN_IDS = [1040503223]  # user id можно посмотреть в боте userinfobot
+ADMIN_IDS = [1040503223, 485322161, 463822349]  # user id можно посмотреть в боте userinfobot
 
 # Ссылки на встречи
 category_links = {
