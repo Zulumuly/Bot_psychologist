@@ -6,7 +6,7 @@ from telegram import (
     Update, ReplyKeyboardMarkup, ReplyKeyboardRemove
 )
 
-from .data import category_links
+from .data import category_links, psychologist_schedule
 from datetime import datetime
 from .text import TEXT_FOR_FIRST_Q, TEXT_FOR_START
 
@@ -60,39 +60,38 @@ async def question1(update: Update, context: ContextTypes.DEFAULT_TYPE):
     return QUESTION2
 
 # Вопрос 2
-# Вопрос 2
 async def question2(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_input = update.message.text
+    input_text = update.message.text
 
     try:
-        # Пробуем распарсить дату
-        input_date = datetime.strptime(user_input, "%d.%m.%Y").date()
-        today = datetime.today().date()
-
-        if input_date < today:
-            await update.message.reply_text(
-                "❗ Дата уже прошла. Пожалуйста, введите дату в формате ДД.ММ.ГГГГ."
-            )
-            return QUESTION2
-
-        # Если дата корректна
-        context.user_data["age"] = user_input
-
-        # Кнопки с временем
-        keyboard = [
-            ["11:00", "12:00", "13:00", "14:00"],
-            ["16:00", "17:00", "18:00", "19:00"]
-        ]
-        markup = ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True)
-
-        await update.message.reply_text("Вопрос 3: На какое время?", reply_markup=markup)
-        return QUESTION3
-
+        selected_date = datetime.strptime(input_text, "%d.%m.%Y").date()
     except ValueError:
-        await update.message.reply_text(
-            "❗ Неверный формат. Пожалуйста, введите дату в формате ДД.ММ.ГГГГ."
-        )
+        await update.message.reply_text("❗ Неверный формат даты. Введите в формате ДД.ММ.ГГГГ.")
         return QUESTION2
+
+    today = datetime.today().date()
+    if selected_date < today:
+        await update.message.reply_text("❗ Эта дата уже прошла. Введите будущую дату.")
+        return QUESTION2
+
+    psychologist = context.user_data.get("category")
+    allowed_days = psychologist_schedule.get(psychologist, [])
+    weekday = selected_date.weekday()  # 0 = Понедельник, ..., 6 = Воскресенье
+
+    if weekday not in allowed_days:
+        await update.message.reply_text("❌ В выбранную дату психолог не работает. Введите другую дату.")
+        return QUESTION2
+
+    # Всё ок — сохраняем дату
+    context.user_data["age"] = input_text
+
+    keyboard = [
+        ["11:00", "12:00", "13:00", "14:00"],
+        ["16:00", "17:00", "18:00", "19:00"]
+    ]
+    markup = ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True)
+    await update.message.reply_text("⏰ Вопрос 3: На какое время?", reply_markup=markup)
+    return QUESTION3
 
 # Вопрос 3 и завершение
 async def question3(update: Update, context: ContextTypes.DEFAULT_TYPE):

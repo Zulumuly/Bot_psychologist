@@ -7,6 +7,8 @@ from telegram import (
     Update, ReplyKeyboardRemove
 )
 
+from openpyxl.utils import get_column_letter
+
 from telegram.ext import (
     ContextTypes, ConversationHandler
 )
@@ -34,7 +36,7 @@ async def export(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         combined_df = pd.DataFrame(responses)
 
-        
+
     combined_df = combined_df.rename(columns={
         "username": "Никнейм",
         "category": "Психолог",
@@ -43,6 +45,18 @@ async def export(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "date": "Дата заполнения"
     })
 
+    with pd.ExcelWriter(file_path, engine="openpyxl") as writer:
+        combined_df.to_excel(writer, index=False, sheet_name="Ответы")
+        worksheet = writer.sheets["Ответы"]
+
+    # Автоматическая ширина столбцов
+    for col_num, column in enumerate(combined_df.columns, 1):
+        max_length = max((
+            combined_df[column].astype(str).map(len).max(),
+            len(column)
+        )) + 2
+        col_letter = get_column_letter(col_num)
+        worksheet.column_dimensions[col_letter].width = max_length
 
     # Сохраняем в файл
     combined_df.to_excel(file_path, index=False)

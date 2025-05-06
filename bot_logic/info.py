@@ -8,12 +8,15 @@ from telegram.ext import (
     ContextTypes
 )
 
+from .text import TEXT_ADRESS, TEXT_FOR_FIRST_Q, TEXT_CONTACT, TEXT_CALL
+
 # /info
 async def info(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
-        #[InlineKeyboardButton("ℹ️ Психологи Московского банка", callback_data="info_about")],
         [InlineKeyboardButton("📝 Как записаться на онлайн консультацию", callback_data="info_how")],
-        [InlineKeyboardButton("📍 Адреса кабинетов онлайн", callback_data="info_terms")]
+        [InlineKeyboardButton("📍 Адреса кабинетов онлайн", callback_data="info_terms")],
+        [InlineKeyboardButton("📶 Как подключиться к встрече", callback_data="info_call")],
+        [InlineKeyboardButton("ℹ️ Контакты", callback_data="info_about")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     await update.message.reply_text("📘 Выберите интересующий раздел:", reply_markup=reply_markup)
@@ -28,29 +31,24 @@ async def info_buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = "ℹ️ Ошибка. Неизвестный запрос."
 
     # В зависимости от нажатой кнопки показываем нужную информацию
-    #if query.data == "info_about":
-    #    text = "ℹ️ *Психологи*\n\nЗдесь ты можешь узнать всё о ..."
     if query.data == "info_how":
-        text = """📝 *Как записаться на онлайн консультацию:*
-        1. Зайдите в *Пульс* раздел *Мое здоровье* -> *психологическая поддержка* -> *записаться очно*
-        2. Выберите нужный адрес
-        3. Запишитесь на удобную дату и время
-        """
+        text = TEXT_FOR_FIRST_Q
     elif query.data == "info_terms":
-        text = """📍 *Адреса кабинетов онлайн*
-        - Давыдов Андрей ведет прием на *Старокачаловская д.10*
-        - Кречетова Анна ведет прием на *Б. Андроньевская д.6*
-        - Костина Татьяна ведет прием на *Расплетина д.1*
-        """
+        text = TEXT_ADRESS
+    elif query.data == "info_call":
+        text = TEXT_CALL
+    elif query.data == "info_about":
+        text = TEXT_CONTACT
 
     # Кнопка "Назад", чтобы вернуться в главное меню
     elif query.data == "info_back":
         text = "📘 Выберите интересующий раздел:"
-        # Мы возвращаемся в главное меню с двумя основными кнопками
+        # Мы возвращаемся в главное меню с основными кнопками
         keyboard = [
-            #[InlineKeyboardButton("Психологи", callback_data="info_about")],
-            [InlineKeyboardButton("Как записаться на консультацию", callback_data="info_how")],
-            [InlineKeyboardButton("Адреса кабинетов онлайн", callback_data="info_terms")]
+            [InlineKeyboardButton("📝 Как записаться на консультацию", callback_data="info_how")],
+            [InlineKeyboardButton("📍 Адреса кабинетов онлайн", callback_data="info_terms")],
+            [InlineKeyboardButton("📶 Как подключиться к встрече", callback_data="info_call")],
+            [InlineKeyboardButton("ℹ️ Контакты", callback_data="info_about")]
         ]
         await query.edit_message_text(text=text, parse_mode="Markdown", reply_markup=InlineKeyboardMarkup(keyboard))
         return
@@ -68,9 +66,10 @@ async def info_back(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     # Главное меню информации
     keyboard = [
-        #[InlineKeyboardButton("ℹ️ Психологи Московского банка", callback_data="info_about")],
         [InlineKeyboardButton("📝 Как записаться на консультацию", callback_data="info_how")],
-        [InlineKeyboardButton("📍 Адреса кабинетов онлайн", callback_data="info_terms")]
+        [InlineKeyboardButton("📍 Адреса кабинетов онлайн", callback_data="info_terms")],
+        [InlineKeyboardButton("📶 Как подключиться к встрече", callback_data="info_call")],
+        [InlineKeyboardButton("ℹ️ Контакты", callback_data="info_about")]
     ]
     await query.edit_message_text("📘 Выберите интересующий раздел:", reply_markup=InlineKeyboardMarkup(keyboard))
 

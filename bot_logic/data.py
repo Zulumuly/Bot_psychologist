@@ -10,5 +10,11 @@ category_links = {
     "Анна Кречетова": "https://jazz.sberbank.ru/sber-miu1el?psw=OERaVhwRHBJYVF1AQwULAVdeQA"
 }
 
+psychologist_schedule = {
+    "Татьяна Костина": [3],  # четверг
+    "Андрей Давыдов": [1],   # вторник
+    "Анна Кречетова": [0],   # понедельник
+}
+
 # Токен бота 
 TOKEN = "8141969487:AAHbQVPhetHuw_o3aSSvkfO8jwu6gbfgI8Q"
