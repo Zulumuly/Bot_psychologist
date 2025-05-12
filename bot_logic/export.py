@@ -61,3 +61,8 @@ async def export(update: Update, context: ContextTypes.DEFAULT_TYPE):
             worksheet.column_dimensions[col_letter].width = max_length
 
     await update.message.reply_document(document=open(file_path, "rb"), filename="results.xlsx")
+
+    # /cancel
+    async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await update.message.reply_text("Опрос отменён.", reply_markup=ReplyKeyboardRemove())
+        return ConversationHandler.END
