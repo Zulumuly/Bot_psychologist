@@ -49,17 +49,17 @@ async def export(update: Update, context: ContextTypes.DEFAULT_TYPE):
         combined_df.to_excel(writer, index=False, sheet_name="Ответы")
         worksheet = writer.sheets["Ответы"]
 
-    # Автоматическая ширина столбцов — ВНУТРИ блока writer
-    for col_num, column in enumerate(combined_df.columns, 1):
-        if combined_df[column].empty:
-            max_length = len(column) + 2
-        else:
-            max_length = max(
-                combined_df[column].astype(str).map(len).max(),
-                len(column)
-            ) + 2
-        col_letter = get_column_letter(col_num)
-        worksheet.column_dimensions[col_letter].width = max_length
+    # # Автоматическая ширина столбцов — ВНУТРИ блока writer
+    # for col_num, column in enumerate(combined_df.columns, 1):
+    #     if combined_df[column].empty:
+    #         max_length = len(column) + 2
+    #     else:
+    #         max_length = max(
+    #             combined_df[column].astype(str).map(len).max(),
+    #             len(column)
+    #         ) + 2
+    #     col_letter = get_column_letter(col_num)
+    #     worksheet.column_dimensions[col_letter].width = max_length
 
 
     await update.message.reply_document(document=open(file_path, "rb"), filename="results.xlsx")
