@@ -51,10 +51,13 @@ async def export(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Автоматическая ширина столбцов — ВНУТРИ блока writer
     for col_num, column in enumerate(combined_df.columns, 1):
-        max_length = max((
-            combined_df[column].astype(str).map(len).max(),
-            len(column)
-        )) + 2
+        if combined_df[column].empty:
+            max_length = len(column) + 2
+        else:
+            max_length = max(
+                combined_df[column].astype(str).map(len).max(),
+                len(column)
+            ) + 2
         col_letter = get_column_letter(col_num)
         worksheet.column_dimensions[col_letter].width = max_length
 
