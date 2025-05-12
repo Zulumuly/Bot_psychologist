@@ -7,8 +7,6 @@ from telegram import (
     Update, ReplyKeyboardRemove
 )
 
-from openpyxl.utils import get_column_letter
-
 from telegram.ext import (
     ContextTypes, ConversationHandler
 )
@@ -62,7 +60,8 @@ async def export(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await update.message.reply_document(document=open(file_path, "rb"), filename="results.xlsx")
 
-    # /cancel
+
+# /cancel
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Опрос отменён.", reply_markup=ReplyKeyboardRemove())
     return ConversationHandler.END
