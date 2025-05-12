@@ -63,6 +63,6 @@ async def export(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_document(document=open(file_path, "rb"), filename="results.xlsx")
 
     # /cancel
-    async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
-        await update.message.reply_text("Опрос отменён.", reply_markup=ReplyKeyboardRemove())
-        return ConversationHandler.END
+async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("Опрос отменён.", reply_markup=ReplyKeyboardRemove())
+    return ConversationHandler.END
